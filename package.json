@@ -2,12 +2,13 @@
   "name": "deepseek-harness-desktop",
   "productName": "DeepSeek Harness",
   "version": "0.1.0",
-  "description": "DeepSeek Harness Native Desktop Workspace Application",
+  "description": "DeepSeek Harness Universal Cross-Platform Native Desktop Application (macOS & Windows)",
   "main": "src/main.cjs",
   "scripts": {
     "start": "electron src/main.cjs",
     "build:mac": "electron-builder --mac --dir",
     "pack:dmg": "electron-builder --mac dmg",
+    "pack:win": "electron-builder --win nsis",
     "dist": "npm run build:mac"
   },
   "build": {
@@ -24,6 +25,19 @@
       "hardenedRuntime": false,
       "gatekeeperAssess": false
     },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
     "files": [
       "src/**/*",
       "assets/**/*"
@@ -37,13 +51,14 @@
     "harness",
     "agent",
     "desktop",
-    "electron"
+    "electron",
+    "macos",
+    "windows"
   ],
-  "author": "DeepSeek AI",
+  "author": "DeepSeek AI & Community",
   "license": "MIT",
   "devDependencies": {
     "electron": "^33.2.1",
-    "electron-builder": "^25.1.8",
-    "tree-kill": "^1.2.2"
+    "electron-builder": "^25.1.8"
   }
 }

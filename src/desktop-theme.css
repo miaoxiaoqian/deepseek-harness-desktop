@@ -1,42 +1,40 @@
-/* DeepSeek Harness Desktop - Pure Native macOS Layout & In-App Auto-Updater Overlay */
+/* DeepSeek Harness Desktop - Seamless Native macOS Overlay (Zero Extra Top Bar) */
 
 :root {
   --dsh-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
   --dsh-font-mono: "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, monospace;
 }
 
-/* ── 1. Global macOS Traffic Light Clearance ────────────────────────────── */
-html, body {
+/* ── 1. Full-Bleed Edge-to-Edge Layout (No Extra Top Strip) ─────────────── */
+html, body, #root {
   margin: 0 !important;
   padding: 0 !important;
+  height: 100vh !important;
+  width: 100vw !important;
   overflow: hidden !important;
   background-color: #0f172a !important;
   font-family: var(--dsh-font-sans) !important;
   -webkit-font-smoothing: antialiased;
 }
 
-#root {
-  margin-top: 34px !important;
-  height: calc(100vh - 34px) !important;
-  box-sizing: border-box !important;
-  display: block !important;
+/* ── 2. Natural Sidebar Breathing Space (Only left column sits below buttons) ── */
+[class*="SidebarRoot_logoRow"],
+[class*="logoRow"],
+aside > *:first-child,
+[data-slot="sidebar"] > *:first-child {
+  padding-top: 20px !important;
 }
 
-/* Dedicated top drag region for window movement */
-#mac-drag-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 34px;
-  background: #0f172a;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  z-index: 9999999;
+/* Top bar / header natural drag region without any visual bar */
+header, [class*="header"], [class*="titlebar"], [class*="SidebarRoot_root"] {
   -webkit-app-region: drag;
-  pointer-events: auto;
 }
 
-/* ── 2. Minimalist Rounded Scrollbars ────────────────────────────────────── */
+button, input, select, textarea, a, [role="button"], [class*="item"], [class*="session"] {
+  -webkit-app-region: no-drag;
+}
+
+/* ── 3. Minimalist Rounded Scrollbars ────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -56,7 +54,7 @@ html, body {
   background: rgba(148, 163, 184, 0.45);
 }
 
-/* ── 3. Code & Typography Enhancements ──────────────────────────────────── */
+/* ── 4. Typography & Code Enhancements ──────────────────────────────────── */
 pre, code {
   font-family: var(--dsh-font-mono) !important;
 }
@@ -74,7 +72,7 @@ button:active {
   transform: scale(0.98);
 }
 
-/* ── 4. In-App Codex-Style Update Notification & Modal ──────────────────── */
+/* ── 5. In-App Codex-Style Update Notification & Modal ──────────────────── */
 #dsh-update-toast {
   position: fixed;
   bottom: 24px;

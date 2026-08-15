@@ -1,10 +1,6 @@
 /**
- * DeepSeek Harness Desktop - Main Process
- * Features:
- * - White Background Black Whale Icon
- * - Zero Logo Overlap with macOS Traffic Lights
- * - In-App One-Click Auto-Updater (Codex Style)
- * - Safe Subprocess Supervision & Tray Lifecycle
+ * DeepSeek Harness Desktop - Main Process (Seamless Edge-to-Edge Edition)
+ * Zero extra top bar, full-bleed window, natural sidebar breathing room, white-base black-whale icon, in-app updater.
  */
 
 const { app, BrowserWindow, Menu, Tray, nativeImage, dialog, globalShortcut, ipcMain, shell } = require('electron');
@@ -106,7 +102,7 @@ function stopHarnessServer() {
   }
 }
 
-// ── 3. Window Creation with Auto-Update Injections ─────────────────────────
+// ── 3. Window Creation ─────────────────────────────────────────────────────
 
 function createSplashWindow() {
   splashWindow = new BrowserWindow({
@@ -134,7 +130,7 @@ function createMainWindow() {
     minWidth: 980,
     minHeight: 640,
     titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 14, y: 10 },
+    trafficLightPosition: { x: 14, y: 14 },
     backgroundColor: '#0f172a',
     show: false,
     webPreferences: {
@@ -153,17 +149,9 @@ function createMainWindow() {
         mainWindow.webContents.insertCSS(cssContent);
       }
 
-      // Inject native drag header + auto-updater in-app dialogs
+      // Inject Auto-Updater UI functions (Zero extra top bars)
       const clientScript = `
         (function() {
-          // 1. Drag Header
-          if (!document.getElementById('mac-drag-header')) {
-            const header = document.createElement('div');
-            header.id = 'mac-drag-header';
-            document.body.prepend(header);
-          }
-
-          // 2. In-App Auto-Update Manager (Codex Style)
           window.__dshCheckAndShowUpdate = async function(silent = true) {
             if (!window.desktopBridge || !window.desktopBridge.checkUpdate) return;
             try {
@@ -298,7 +286,6 @@ ipcMain.handle('engine:check-update', async () => {
   return new Promise((resolve) => {
     exec('git fetch origin master --depth=5 && git rev-list HEAD..origin/master --count', { cwd: HARNESS_REPO_DIR }, (err, stdout) => {
       if (err) {
-        // Fallback: no network or error
         resolve({ hasUpdate: false, aheadCount: 0 });
         return;
       }
