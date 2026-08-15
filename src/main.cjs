@@ -3,7 +3,7 @@
  * Zero extra top bar, full-bleed window, natural sidebar breathing room, authentic DeepSeek whale icon, in-app updater.
  */
 
-const { app, BrowserWindow, Menu, Tray, nativeImage, dialog, globalShortcut, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, Menu, Tray, nativeImage, dialog, globalShortcut, ipcMain, shell, nativeTheme } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -590,15 +590,29 @@ ipcMain.handle('engine:restart', async () => {
   return true;
 });
 
-// ── 7. App Lifecycle ───────────────────────────────────────────────────────
+function updateDynamicDockIcon() {
+  if (process.platform !== 'darwin' || !app.dock) return;
+  try {
+    const isDark = nativeTheme.shouldUseDarkColors;
+    const iconName = isDark ? 'icon_dark.png' : 'icon_light.png';
+    const iconPath = path.join(__dirname, '..', 'assets', iconName);
+    if (fs.existsSync(iconPath)) {
+      const iconImg = nativeImage.createFromPath(iconPath);
+      if (!iconImg.isEmpty()) {
+        app.dock.setIcon(iconImg);
+        console.log(`[Desktop Host] Dynamic Dock icon: ${isDark ? 'Dark (Black Background White Whale)' : 'Light (White Background Black Whale)'}`);
+      }
+    }
+  } catch (e) {
+    console.warn('[Desktop Host] Dynamic Dock icon notice:', e.message);
+  }
+}
 
 app.whenReady().then(async () => {
-  if (process.platform === 'darwin' && app.dock) {
-    const iconImg = nativeImage.createFromPath(path.join(__dirname, '../assets/icon.png'));
-    if (!iconImg.isEmpty()) {
-      app.dock.setIcon(iconImg);
-    }
-  }
+  updateDynamicDockIcon();
+  nativeTheme.on('updated', () => {
+    updateDynamicDockIcon();
+  });
 
   createApplicationMenu();
   createSplashWindow();
