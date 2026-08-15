@@ -1,0 +1,49 @@
+{
+  "name": "deepseek-harness-desktop",
+  "productName": "DeepSeek Harness",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness Native Desktop Workspace Application",
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron src/main.cjs",
+    "build:mac": "electron-builder --mac --dir",
+    "pack:dmg": "electron-builder --mac dmg",
+    "dist": "npm run build:mac"
+  },
+  "build": {
+    "appId": "com.deepseek.harness.desktop",
+    "productName": "DeepSeek Harness",
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        "dir",
+        "dmg"
+      ],
+      "icon": "assets/icon.icns",
+      "darkModeSupport": true,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "keywords": [
+    "deepseek",
+    "harness",
+    "agent",
+    "desktop",
+    "electron"
+  ],
+  "author": "DeepSeek AI",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "tree-kill": "^1.2.2"
+  }
+}

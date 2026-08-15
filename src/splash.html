@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek Harness</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-app-region: drag;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+      background: radial-gradient(circle at 50% 30%, #1c1c21, #0a0a0c 80%);
+      color: #f8fafc;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    .logo-container {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-glow {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+      filter: blur(14px);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+
+    .logo-img {
+      width: 72px;
+      height: 72px;
+      z-index: 2;
+      filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.7));
+    }
+
+    h1 {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff 40%, #a1a1aa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #e4e4e7;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 2px 9px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
+
+    .status-box {
+      width: 260px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .status-text {
+      font-size: 11.5px;
+      color: #71717a;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 3.5px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 35%;
+      background: linear-gradient(90deg, #52525b, #e4e4e7, #52525b);
+      background-size: 200% 100%;
+      border-radius: 4px;
+      animation: indeterminate 1.8s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.92); opacity: 0.4; }
+      50% { transform: scale(1.15); opacity: 0.8; }
+    }
+
+    @keyframes indeterminate {
+      0% { left: -35%; width: 35%; }
+      50% { left: 40%; width: 50%; }
+      100% { left: 100%; width: 35%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-container">
+    <div class="logo-glow"></div>
+    <img src="../assets/icon.png" class="logo-img" alt="DeepSeek Black Whale"/>
+  </div>
+
+  <h1>DeepSeek Harness</h1>
+  <div class="badge">DESKTOP WORKSPACE</div>
+
+  <div class="status-box">
+    <div class="status-text" id="statusText">正在启动本地 Harness 引擎...</div>
+    <div class="progress-track">
+      <div class="progress-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    const statusMessages = [
+      "正在检查本地 Harness 引擎服务...",
+      "加载 Cordis 插件系统与 LSP 语言服务器...",
+      "初始化 Subagents 与 MCP 工具生态...",
+      "连接完成，正在进入工作区..."
+    ];
+    let step = 0;
+    const textEl = document.getElementById("statusText");
+    const interval = setInterval(() => {
+      if (step < statusMessages.length) {
+        textEl.textContent = statusMessages[step];
+        step++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 800);
+  </script>
+</body>
+</html>
