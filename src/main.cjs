@@ -1,13 +1,59 @@
 /**
  * DeepSeek Harness Desktop - Main Process (Seamless Edge-to-Edge Edition)
- * Zero extra top bar, full-bleed window, natural sidebar breathing room, white-base black-whale icon, in-app updater.
+ * Zero extra top bar, full-bleed window, natural sidebar breathing room, authentic DeepSeek whale icon, in-app updater.
  */
 
 const { app, BrowserWindow, Menu, Tray, nativeImage, dialog, globalShortcut, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
-const { spawn, exec } = require('child_process');
+const { spawn, exec, execSync } = require('child_process');
+
+// ── 0. Synchronously resolve interactive shell environment on macOS ─────────
+function resolveEnvironment() {
+  if (process.platform === 'win32') return;
+  try {
+    const raw = execSync('/bin/zsh -ilc "env" 2>/dev/null || /bin/bash -lc "env" 2>/dev/null', {
+      timeout: 3000,
+      encoding: 'utf8'
+    });
+    for (const line of raw.split('\n')) {
+      const idx = line.indexOf('=');
+      if (idx > 0) {
+        const k = line.substring(0, idx);
+        const v = line.substring(idx + 1);
+        if (k && v && !process.env[k]) {
+          process.env[k] = v;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[Desktop Host] Shell env resolution warning:', e.message);
+  }
+
+  // Ensure critical developer paths are guaranteed in PATH
+  const extraPaths = [
+    '/Users/miaoqian/.local/bin',
+    '/Users/miaoqian/.antigravity-ide/antigravity-ide/bin',
+    '/Users/miaoqian/.gemini/antigravity-cli/bin',
+    '/opt/homebrew/bin',
+    '/opt/homebrew/sbin',
+    '/usr/local/bin',
+    '/usr/bin',
+    '/bin',
+    '/usr/sbin',
+    '/sbin'
+  ];
+  const currentParts = (process.env.PATH || '').split(':');
+  for (const p of extraPaths) {
+    if (fs.existsSync(p) && !currentParts.includes(p)) {
+      currentParts.unshift(p);
+    }
+  }
+  process.env.PATH = currentParts.join(':');
+}
+
+resolveEnvironment();
 
 // Configuration
 const HARNESS_REPO_DIR = '/Users/miaoqian/Documents/Codex/2026-08-15/https-github-com-deepseek-ai-deepseek/deepseek-harness';
@@ -20,7 +66,7 @@ let tray = null;
 let serverProcess = null;
 let isQuitting = false;
 let serverReady = false;
-let currentWorkspace = HARNESS_REPO_DIR;
+let currentWorkspace = fs.existsSync(HARNESS_REPO_DIR) ? HARNESS_REPO_DIR : process.cwd();
 
 // ── 1. HTTP Health Check ───────────────────────────────────────────────────
 
@@ -55,15 +101,23 @@ async function waitForServer(url, maxRetries = 40, intervalMs = 700) {
 function startHarnessServer() {
   console.log('[Desktop Host] Launching DeepSeek Harness engine...');
 
-  const env = {
-    ...process.env,
-    PATH: `/opt/homebrew/bin:/usr/local/bin:${process.env.PATH || ''}`
-  };
+  if (!fs.existsSync(currentWorkspace)) {
+    currentWorkspace = HARNESS_REPO_DIR;
+  }
+
+  // Find pnpm executable
+  let pnpmBin = 'pnpm';
+  for (const candidate of ['/opt/homebrew/bin/pnpm', '/usr/local/bin/pnpm', '/Users/miaoqian/.local/bin/pnpm']) {
+    if (fs.existsSync(candidate)) {
+      pnpmBin = candidate;
+      break;
+    }
+  }
 
   try {
-    serverProcess = spawn('pnpm', ['dsh', 'web', '--port', String(DEFAULT_PORT)], {
+    serverProcess = spawn(pnpmBin, ['dsh', 'web', '--port', String(DEFAULT_PORT)], {
       cwd: currentWorkspace,
-      env,
+      env: process.env,
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: true
     });
@@ -250,92 +304,22 @@ function createMainWindow() {
   mainWindow.loadURL(SERVER_URL);
 
   mainWindow.once('ready-to-show', () => {
-    if (splashWindow && !splashWindow.isDestroyed()) {
+    if (splashWindow) {
       splashWindow.close();
       splashWindow = null;
     }
     mainWindow.show();
-    mainWindow.focus();
   });
 
-  mainWindow.on('close', (e) => {
+  mainWindow.on('close', (event) => {
     if (!isQuitting && process.platform === 'darwin') {
-      e.preventDefault();
+      event.preventDefault();
       mainWindow.hide();
     }
   });
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('http:') || url.startsWith('https:')) {
-      if (!url.includes(`127.0.0.1:${DEFAULT_PORT}`) && !url.includes(`localhost:${DEFAULT_PORT}`)) {
-        shell.openExternal(url);
-        return { action: 'deny' };
-      }
-    }
-    return { action: 'allow' };
-  });
 }
 
-// ── 4. Auto-Update IPC Handlers ────────────────────────────────────────────
-
-ipcMain.handle('engine:check-update', async () => {
-  return new Promise((resolve) => {
-    exec('git fetch origin master --depth=5 && git rev-list HEAD..origin/master --count', { cwd: HARNESS_REPO_DIR }, (err, stdout) => {
-      if (err) {
-        resolve({ hasUpdate: false, aheadCount: 0 });
-        return;
-      }
-      const count = parseInt(stdout.trim(), 10) || 0;
-      resolve({ hasUpdate: count > 0, aheadCount: count });
-    });
-  });
-});
-
-ipcMain.handle('engine:apply-update', async (event) => {
-  const send = (msg) => {
-    if (mainWindow) mainWindow.webContents.send('update:progress', msg);
-  };
-
-  return new Promise((resolve) => {
-    send('[1/4] 正在拉取官方最新代码与插件 (git pull)...');
-    exec('git pull --rebase origin master', { cwd: HARNESS_REPO_DIR }, (err1, out1) => {
-      if (err1) {
-        send(`拉取错误: ${err1.message}`);
-        resolve(false);
-        return;
-      }
-      send(out1.trim());
-
-      send('[2/4] 正在同步安装依赖包 (pnpm install)...');
-      exec('pnpm install', { cwd: HARNESS_REPO_DIR }, (err2) => {
-        if (err2) {
-          send(`依赖同步提示: ${err2.message}`);
-        }
-
-        send('[3/4] 正在构建前端与插件 bundle (pnpm run build:web)...');
-        exec('pnpm run build:web', { cwd: HARNESS_REPO_DIR }, (err3) => {
-          if (err3) {
-            send(`构建提示: ${err3.message}`);
-          }
-
-          send('[4/4] 正在重启本地 Harness 核心引擎...');
-          stopHarnessServer();
-          setTimeout(() => {
-            startHarnessServer();
-            send('✅ 引擎已重启成功！');
-            resolve(true);
-          }, 1200);
-        });
-      });
-    });
-  });
-});
-
-// ── 5. Menus & Tray ────────────────────────────────────────────────────────
+// ── 4. Native Application Menu ─────────────────────────────────────────────
 
 function createApplicationMenu() {
   const isMac = process.platform === 'darwin';
@@ -344,9 +328,9 @@ function createApplicationMenu() {
     ...(isMac
       ? [
           {
-            label: 'DeepSeek Harness',
+            label: app.name,
             submenu: [
-              { role: 'about', label: '关于 DeepSeek Harness' },
+              { label: '关于 DeepSeek Harness', role: 'about' },
               {
                 label: '检查官方插件更新...',
                 click: () => {
@@ -357,24 +341,27 @@ function createApplicationMenu() {
                 }
               },
               { type: 'separator' },
-              {
-                label: '偏好设置...',
-                accelerator: 'Cmd+,',
-                click: () => {
-                  if (mainWindow) {
-                    mainWindow.show();
-                    mainWindow.webContents.send('engine:open-settings');
-                  }
+              { label: '偏好设置...', accelerator: 'Cmd+,', click: () => {
+                if (mainWindow) {
+                  mainWindow.show();
+                  mainWindow.webContents.executeJavaScript('window.location.hash = "#/settings";');
                 }
-              },
+              }},
               { type: 'separator' },
-              { role: 'services', label: '服务' },
+              { label: '服务', role: 'services' },
               { type: 'separator' },
-              { role: 'hide', label: '隐藏 DeepSeek Harness' },
-              { role: 'hideOthers', label: '隐藏其他' },
-              { role: 'unhide', label: '显示全部' },
+              { label: '隐藏 DeepSeek Harness', role: 'hide' },
+              { label: '隐藏其他应用', role: 'hideOthers' },
+              { label: '显示全部', role: 'unhide' },
               { type: 'separator' },
-              { role: 'quit', label: '退出 DeepSeek Harness' }
+              {
+                label: '退出 DeepSeek Harness',
+                accelerator: 'Cmd+Q',
+                click: () => {
+                  isQuitting = true;
+                  app.quit();
+                }
+              }
             ]
           }
         ]
@@ -387,8 +374,8 @@ function createApplicationMenu() {
           accelerator: 'CmdOrCtrl+O',
           click: async () => {
             const result = await dialog.showOpenDialog(mainWindow, {
-              properties: ['openDirectory', 'createDirectory'],
-              title: '选择 DeepSeek Harness 工作区目录'
+              properties: ['openDirectory'],
+              title: '选择工作区目录'
             });
             if (!result.canceled && result.filePaths.length > 0) {
               currentWorkspace = result.filePaths[0];
@@ -399,83 +386,81 @@ function createApplicationMenu() {
           }
         },
         {
-          label: '重启 Harness 引擎',
-          accelerator: 'CmdOrCtrl+Shift+R',
-          click: async () => {
+          label: '新会话',
+          accelerator: 'CmdOrCtrl+N',
+          click: () => {
+            if (mainWindow) {
+              mainWindow.webContents.executeJavaScript('window.location.hash = "#/chat";');
+            }
+          }
+        },
+        { type: 'separator' },
+        isMac ? { label: '关闭窗口', role: 'close' } : { label: '退出', role: 'quit' }
+      ]
+    },
+    {
+      label: '编辑',
+      submenu: [
+        { label: '撤销', role: 'undo' },
+        { label: '重做', role: 'redo' },
+        { type: 'separator' },
+        { label: '剪切', role: 'cut' },
+        { label: '复制', role: 'copy' },
+        { label: '粘贴', role: 'paste' },
+        { label: '全选', role: 'selectAll' }
+      ]
+    },
+    {
+      label: '视图',
+      submenu: [
+        { label: '重新加载', role: 'reload' },
+        { label: '强制重新加载', role: 'forceReload' },
+        { label: '切换开发者工具', role: 'toggleDevTools' },
+        { type: 'separator' },
+        { label: '实际大小', role: 'resetZoom' },
+        { label: '放大', role: 'zoomIn' },
+        { label: '缩小', role: 'zoomOut' },
+        { type: 'separator' },
+        { label: '切换全屏', role: 'togglefullscreen' }
+      ]
+    },
+    {
+      label: '窗口',
+      submenu: [
+        { label: '最小化', role: 'minimize' },
+        { label: '缩放', role: 'zoom' },
+        ...(isMac
+          ? [
+              { type: 'separator' },
+              { label: '前置全部窗口', role: 'front' },
+              { type: 'separator' },
+              { label: '窗口', role: 'window' }
+            ]
+          : [{ label: '关闭', role: 'close' }])
+      ]
+    },
+    {
+      label: '帮助',
+      role: 'help',
+      submenu: [
+        {
+          label: 'DeepSeek Harness GitHub 源码库',
+          click: () => shell.openExternal('https://github.com/deepseek-ai/deepseek-harness')
+        },
+        {
+          label: 'DeepSeek 官方主页',
+          click: () => shell.openExternal('https://www.deepseek.com')
+        },
+        { type: 'separator' },
+        {
+          label: '重启本地引擎服务',
+          click: () => {
             stopHarnessServer();
             setTimeout(() => {
               startHarnessServer();
               if (mainWindow) mainWindow.reload();
             }, 1000);
           }
-        },
-        { type: 'separator' },
-        isMac ? { role: 'close', label: '关闭窗口' } : { role: 'quit', label: '退出' }
-      ]
-    },
-    {
-      label: '编辑',
-      submenu: [
-        { role: 'undo', label: '撤销' },
-        { role: 'redo', label: '重做' },
-        { type: 'separator' },
-        { role: 'cut', label: '剪切' },
-        { role: 'copy', label: '复制' },
-        { role: 'paste', label: '粘贴' },
-        { role: 'selectAll', label: '全选' }
-      ]
-    },
-    {
-      label: '视图',
-      submenu: [
-        { role: 'reload', label: '重新加载' },
-        { role: 'forceReload', label: '强制刷新' },
-        { role: 'toggleDevTools', label: '开发者工具' },
-        { type: 'separator' },
-        { role: 'resetZoom', label: '默认大小' },
-        { role: 'zoomIn', label: '放大' },
-        { role: 'zoomOut', label: '缩小' },
-        { type: 'separator' },
-        { role: 'togglefullscreen', label: '全屏模式' }
-      ]
-    },
-    {
-      label: '窗口',
-      submenu: [
-        { role: 'minimize', label: '最小化' },
-        { role: 'zoom', label: '缩放' },
-        ...(isMac
-          ? [
-              { type: 'separator' },
-              { role: 'front', label: '前置所有窗口' }
-            ]
-          : [{ role: 'close', label: '关闭' }])
-      ]
-    },
-    {
-      label: '帮助',
-      submenu: [
-        {
-          label: '检查官方插件更新...',
-          click: () => {
-            if (mainWindow) {
-              mainWindow.show();
-              mainWindow.webContents.executeJavaScript('window.__dshCheckAndShowUpdate(false);');
-            }
-          }
-        },
-        {
-          label: 'DeepSeek 官方网站',
-          click: async () => shell.openExternal('https://www.deepseek.com')
-        },
-        {
-          label: 'Harness 项目源码与文档',
-          click: async () => shell.openExternal('https://github.com/deepseek-ai/deepseek-harness')
-        },
-        { type: 'separator' },
-        {
-          label: '在默认浏览器中打开',
-          click: async () => shell.openExternal(SERVER_URL)
         }
       ]
     }
@@ -485,18 +470,19 @@ function createApplicationMenu() {
   Menu.setApplicationMenu(menu);
 }
 
+// ── 5. Tray Icon & Menu ────────────────────────────────────────────────────
+
 function updateTrayMenu() {
   if (!tray) return;
 
-  const statusLabel = serverReady ? '🟢 引擎状态: 运行中 (3080)' : '🟡 引擎状态: 正在连接...';
-
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'DeepSeek Harness 桌面端', enabled: false },
-    { label: statusLabel, enabled: false },
+    {
+      label: `引擎状态: ${serverReady ? '🟢 运行中 (Port ' + DEFAULT_PORT + ')' : '🔴 正在启动/离线'}`,
+      enabled: false
+    },
     { type: 'separator' },
     {
-      label: '显示主窗口',
-      accelerator: 'Option+Space',
+      label: '显示主窗口 (⌥+Space)',
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -607,6 +593,13 @@ ipcMain.handle('engine:restart', async () => {
 // ── 7. App Lifecycle ───────────────────────────────────────────────────────
 
 app.whenReady().then(async () => {
+  if (process.platform === 'darwin' && app.dock) {
+    const iconImg = nativeImage.createFromPath(path.join(__dirname, '../assets/icon.png'));
+    if (!iconImg.isEmpty()) {
+      app.dock.setIcon(iconImg);
+    }
+  }
+
   createApplicationMenu();
   createSplashWindow();
   createTray();
