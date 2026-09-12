@@ -5,7 +5,7 @@
       <stop offset="100%" stop-color="#2B4EED"/>
     </linearGradient>
     <linearGradient id="blueGlow" x1="512" y1="70" x2="512" y2="954" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.35"/>
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.3"/>
       <stop offset="30%" stop-color="#FFFFFF" stop-opacity="0.05"/>
       <stop offset="100%" stop-color="#000000" stop-opacity="0.2"/>
     </linearGradient>

@@ -72,19 +72,17 @@ button:active {
   transform: scale(0.98);
 }
 
-/* ── 5. In-App Codex-Style Update Notification & Modal ──────────────────── */
+/* ── 5. In-App Update Notification & Modal (Solid Crisp Theme, Zero Blur) ── */
 #dsh-update-toast {
   position: fixed;
   bottom: 24px;
   right: 24px;
   width: 330px;
-  background: rgba(15, 23, 42, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   padding: 16px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.15);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
   z-index: 99999999;
   animation: toast-slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
@@ -171,13 +169,11 @@ button:active {
   color: #ffffff;
 }
 
-/* Modal Overlay */
+/* Modal Overlay (Clean Solid Background, Zero Blur) */
 #dsh-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(10, 15, 29, 0.88);
   z-index: 999999999;
   display: flex;
   align-items: center;

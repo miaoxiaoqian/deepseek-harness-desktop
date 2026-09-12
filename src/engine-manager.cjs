@@ -22,10 +22,18 @@ class UniversalEngineManager {
 
   // 1. Resolve storage location across macOS / Windows / Linux
   resolveEngineDirectory() {
-    // Check developer local directory first
-    const devDir = '/Users/miaoqian/Documents/Codex/2026-08-15/https-github-com-deepseek-ai-deepseek/deepseek-harness';
-    if (fs.existsSync(devDir)) {
-      return devDir;
+    if (process.env.HARNESS_DIR && fs.existsSync(process.env.HARNESS_DIR)) {
+      return process.env.HARNESS_DIR;
+    }
+    const os = require('os');
+    const homeDir = os.homedir();
+    const candidateDevDirs = [
+      path.join(homeDir, 'Documents', 'deepseek-harness'),
+      path.join(homeDir, '.deepseek-harness'),
+      path.join(homeDir, 'deepseek-harness')
+    ];
+    for (const devDir of candidateDevDirs) {
+      if (fs.existsSync(devDir)) return devDir;
     }
 
     // Check packaged resources directory
