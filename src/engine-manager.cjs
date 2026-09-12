@@ -28,6 +28,8 @@ class UniversalEngineManager {
     const os = require('os');
     const homeDir = os.homedir();
     const candidateDevDirs = [
+      path.join(homeDir, 'Desktop', 'deepseekharness'),
+      path.join(homeDir, 'Desktop', 'deepseek harnes'),
       path.join(homeDir, 'Documents', 'deepseek-harness'),
       path.join(homeDir, '.deepseek-harness'),
       path.join(homeDir, 'deepseek-harness')
