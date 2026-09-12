@@ -2,86 +2,89 @@
 
 <div align="center">
   <img src="assets/icon.png" width="128" height="128" alt="DeepSeek Harness Desktop Logo" />
-  <h3>DeepSeek Harness 跨平台原生桌面端 (macOS / Windows / Linux)</h3>
+  <h3>DeepSeek Harness 跨平台原生桌面端 (Windows & macOS & Linux)</h3>
   <p>100% 完整支持 Subagents、MCP 工具生态、LSP 代码智能与 Plan 模式的开箱即用桌面工作区</p>
-  <p><strong>🔒 纯净开源 · 零隐私数据 · 无内置密钥 · 独立运行</strong></p>
+  <p><strong>🌐 Win & Mac 跨平台完全复用 · 纯净开源 · 零隐私数据 · 无内置密钥 · 即拉即用</strong></p>
 </div>
 
 ---
 
-## 📥 桌面端安装包直接下载 (Download Releases)
+## ⚡ 极速安装与启动（双平台通用 · 无需下载压缩包）
 
-对于普通用户，**无需配置 Node.js 或编译环境**，直接下载预编译桌面客户端即可开箱即用：
+本桌面端源码直接推送到 GitHub 仓库，**任何人无需下载大型压缩包或 DMG**，通过一条命令或 `git clone` 即可在 Windows 和 Mac 上直接启动并复用完整桌面应用！
 
-| 平台 / 架构 | 安装包类型 | 说明 | SHA256 校验和 |
-|---|---|---|---|
-| **macOS (Apple Silicon, M1/M2/M3/M4)** | **[.dmg 镜像包](https://github.com/miaoxiaoqian/deepseek-harness-desktop/releases)** | 推荐，拖拽即可安装至 `/Applications` | `7131e5109dd1cc567864f9d7c586499e74061d134dd83702c59c18f72f9fa130` |
-| **macOS (Apple Silicon, M1/M2/M3/M4)** | **[.zip 压缩包](https://github.com/miaoxiaoqian/deepseek-harness-desktop/releases)** | 解压直接获得 `DeepSeek Harness.app` | `ccffd13e6d8aef37a876f549db9061c738244c6505aa18950603fb3b28e26164` |
-
-> [!TIP]
-> **macOS 首次打开提示“已损坏”或“未受信任开发者”的解决方法**：
-> 因开源打包采用自签名（Ad-hoc Code Signing），macOS Gatekeeper 可能会拦截。请打开终端运行以下命令即可正常启动：
-> ```bash
-> xattr -cr "/Applications/DeepSeek Harness.app"
-> ```
-> 或在访达（Finder）中按住 <kbd>Control</kbd> 键右键点击应用图标，选择「打开」。
-
----
-
-## ⚡ 一键极速安装与启动（终端一键命令）
-
-### 🍎 macOS / Linux (终端一键命令)
-```bash
-curl -fsSL https://raw.githubusercontent.com/miaoxiaoqian/deepseek-harness-desktop/main/install.sh | bash
-```
-
-### 🪟 Windows (PowerShell 一键命令)
+### 🪟 Windows 用户（PowerShell 一键命令）
+打开 PowerShell 运行：
 ```powershell
 irm https://raw.githubusercontent.com/miaoxiaoqian/deepseek-harness-desktop/main/install.ps1 | iex
 ```
 
----
-
-## 🛡️ 隐私与数据安全保证 (Privacy & Safety)
-
-本应用在打包与开源发布时遵循严格的隐私隔离标准：
-- ❌ **绝不包含任何用户 API Key**：本安装包及仓库不含有任何预置的密钥、Token 或云端凭证。首次启动时由用户在本地设置中自行填写个人 DeepSeek API Key；
-- ❌ **绝不打包任何个人相片与私有素材**：不含任何本地相册文件、个人图像或历史项目；
-- ❌ **数据完全本地化**：用户所有的会话历史、项目代码与配置文件均安全保存在用户本机的标准目录（如 `~/.dsh`）中，绝不上传至任何第三方服务器。
+### 🍎 macOS / Linux 用户（终端一键命令）
+打开终端运行：
+```bash
+curl -fsSL https://raw.githubusercontent.com/miaoxiaoqian/deepseek-harness-desktop/main/install.sh | bash
+```
 
 ---
 
-## ✨ 核心特性
+## 🛠️ 跨平台通用手动克隆与运行 (Git Clone & Run)
 
-- 🐋 **白底黑鲸官方视觉**：遵循 Apple 与 Windows Fluent 规范的原生质感图标与暗色毛玻璃（Vibrancy）沉浸式窗口；
-- 🌐 **双平台开箱即用 (macOS & Windows)**：内置通用引擎引导器（Universal Engine Bootstrapper），任何人下载后自动连接或克隆官方最新引擎并运行；
-- 🛡️ **红黄绿交通灯原生避让**：macOS 满屏无顶栏设计，左上角三色按钮自然融入，零遮挡；
-- 🔄 **类 Codex 一键应用内热更新**：自动检测官方 GitHub 最新插件与代码提交，右下角弹窗一键无缝更新并重启，无需重新打包客户端；
-- ⚡ **全局秒级唤起**：支持通过 <kbd>Option</kbd> + <kbd>Space</kbd>（Windows: <kbd>Alt</kbd> + <kbd>Space</kbd>）随时呼出与隐藏工作区；
-- 📂 **原生工作区选择器**：支持 <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>O</kbd> 随时通过系统原生文件管理器一键切换项目目录；
-- 🧩 **100% 契合「一切皆插件」**：零侵入式 Cordis 微内核托管，49+ 个官方与第三方插件无损运行。
-
----
-
-## 🛠️ 开发者从源码运行与构建
+无论在 Windows 还是 macOS，只要安装了 [Node.js](https://nodejs.org/) (推荐 v20+)，均可直接拉取本仓库运行：
 
 ```bash
-# 1. 克隆本仓库
+# 1. 克隆本桌面端仓库
 git clone https://github.com/miaoxiaoqian/deepseek-harness-desktop.git
 cd deepseek-harness-desktop
 
-# 2. 安装依赖
+# 2. 安装桌面端依赖
 npm install
 
-# 3. 本地启动开发模式
+# 3. 启动桌面端 (Windows / Mac 均通用)
 npm start
+```
 
-# 4. 打包为分发安装包
-npm run pack:dmg  # 打包 macOS (.dmg)
-npm run pack:win  # 打包 Windows (.exe)
+> [!NOTE]
+> 首次启动时，内置的通用引擎引导器（Universal Engine Supervisor）会自动检测本机环境。若本机尚未安装 DeepSeek Harness 核心，将自动在用户私有数据目录中完成官方核心环境配置，并无缝打开原生桌面窗口。
+
+---
+
+## 🛡️ 隐私与数据安全保证 (Zero Privacy Leaks)
+
+本仓库与桌面客户端严格遵循开源隐私与零泄露标准：
+- ❌ **绝无任何个人 API Key**：不含任何预设密钥、Token 或云端凭据；首次使用时由用户在设置中输入自己的 DeepSeek API Key；
+- ❌ **绝无个人照片与私有素材**：代码中不包含任何个人相册、相片、历史项目或私人文件；
+- ❌ **数据 100% 本地存储**：所有会话记录、模型交互与项目工作区均保留在用户本机的标准数据目录中，绝不上传到任何第三方服务；
+- ❌ **无任何开发者绝对路径绑定**：全量代码均自适应检测当前操作系统和用户的主目录（`os.homedir()` / `%APPDATA%`），绝不硬编码任何个人电脑路径。
+
+---
+
+## ✨ 跨平台核心特性
+
+- 🐋 **深色/浅色自适应官方质感视觉**：
+  - macOS：支持黑鲸白底 / 白鲸黑底自适应 Dock 图标，沉浸式毛玻璃窗口，无缝红黄绿交通灯避让；
+  - Windows：遵循 Fluent 规范的原生窗口与系统托盘，优雅的暗黑界面体验；
+- 🌐 **双平台开箱即用 (macOS & Windows)**：内置跨平台进程守护与自启动机制，无论在 Mac 还是 Windows 均可一键启动；
+- ⚡ **全局秒级唤起**：
+  - macOS：按下 <kbd>Option</kbd> + <kbd>Space</kbd> 随时呼出与隐藏工作区；
+  - Windows：按下 <kbd>Alt</kbd> + <kbd>Space</kbd> 随时呼出与隐藏工作区；
+- 📂 **原生文件管理器选区**：随时通过快捷键 <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>O</kbd> 调用系统原生文件选择器切换项目工作区；
+- 🧩 **100% 完整支持官方生态**：Subagents 多代理协作、MCP 工具链、Plan 模式无损运行。
+
+---
+
+## 📦 可选：本地打包为独立安装文件（若需要发给无 Node.js 用户）
+
+如果需要为没有配置 Node.js 环境的普通用户制作可独立执行的安装程序，可以在本仓库中直接打包：
+
+```bash
+# macOS: 打包为 DMG 磁盘镜像
+npm run pack:dmg
+
+# Windows: 打包为 NSIS 安装引导程序 (.exe)
+npm run pack:win
 ```
 
 ---
 
 ## 📄 License
-MIT License. Based on DeepSeek Harness & Cordis.
+MIT License. Based on DeepSeek Harness & Electron.
