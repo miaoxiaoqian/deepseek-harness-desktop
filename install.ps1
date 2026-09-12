@@ -35,7 +35,11 @@ if (Test-Path "$InstallDir\.git") {
 
 # 4. Install & Run
 Write-Host "⚙️ 正在安装依赖..." -ForegroundColor Green
-pnpm install
+if (Get-Command pnpm -ErrorAction SilentlyContinue) {
+    pnpm install
+} else {
+    npm install
+}
 
 Write-Host "🚀 正在启动 DeepSeek Harness 桌面端..." -ForegroundColor Cyan
 npm start

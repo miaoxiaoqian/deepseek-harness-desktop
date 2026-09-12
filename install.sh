@@ -44,16 +44,19 @@ echo "⚙️ 正在安装客户端依赖..."
 pnpm install
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  echo "🔨 正在编译 macOS 应用程序..."
-  npm run build:mac
-  cp -R dist/mac-arm64/DeepSeek\ Harness.app /Applications/ 2>/dev/null || cp -R dist/mac/DeepSeek\ Harness.app /Applications/
-  xattr -cr "/Applications/DeepSeek Harness.app" 2>/dev/null || true
-  
-  echo ""
-  echo "🎉 安装完成！DeepSeek Harness 已成功安装至 /Applications/DeepSeek Harness.app"
-  echo "🚀 正在为您启动..."
-  open "/Applications/DeepSeek Harness.app"
+  echo "🔨 正在配置 macOS 应用程序..."
+  if npm run build:mac 2>/dev/null; then
+    cp -R dist/mac-arm64/DeepSeek\ Harness.app /Applications/ 2>/dev/null || cp -R dist/mac/DeepSeek\ Harness.app /Applications/ 2>/dev/null || true
+    xattr -cr "/Applications/DeepSeek Harness.app" 2>/dev/null || true
+    echo ""
+    echo "🎉 安装完成！DeepSeek Harness 已就绪"
+    echo "🚀 正在为您启动..."
+    open "/Applications/DeepSeek Harness.app" 2>/dev/null || npm start
+  else
+    echo "🚀 正在为您启动 DeepSeek Harness 桌面端..."
+    npm start
+  fi
 else
-  echo "🎉 安装完成！在终端运行 'npm start' 即可启动客户端。"
+  echo "🎉 安装完成！正在为您启动客户端..."
   npm start
 fi
